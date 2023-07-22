@@ -1,0 +1,1252 @@
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gamebase weboldal</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-cookies@1.8.3/vue-cookies.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.6.4.min.js"
+      integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8="
+      crossorigin="anonymous"
+    ></script>
+    <!-- Google recaptcha -->
+    <style>
+      .modal-mask {
+        position: fixed;
+        z-index: 9998;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: table;
+        transition: opacity 0.3s ease;
+      }
+
+      .modal-wrapper {
+        display: table-cell;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body class="bg-dark text-white">
+    <div id="HomeApp">
+      <nav
+        class="navbar navbar-expand-lg navbar-dark bg-dark border-success border-bottom"
+      >
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#"
+            ><strong class="text-success">GameBase</strong> - Játékadatbázis</a
+          >
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="index.html"
+                  ><i class="fa-light fa-basket-shopping"></i> Áruház</a
+                >
+              </li>
+              <li class="nav-item" v-if="this.logged === 'true'">
+                <a class="nav-link" href="library.html"
+                  ><i class="fa-light fa-gamepad"></i> Játékaim</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="community"
+                  ><i class="fa-light fa-user-group"></i> Közösség
+                  <span class="badge rounded-pill bg-secondary"
+                    >Hamarosan</span
+                  ></a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="about.html"
+                  ><i class="fa-light fa-phone"></i> Rólunk</a
+                >
+              </li>
+              <li
+                class="nav-item dropdown"
+                v-if="this.logged === 'true' && this.permission != 'user'"
+              >
+                <a
+                  class="nav-link dropdown-toggle text-danger"
+                  href="#"
+                  id="navbarDropdown"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="fa-light fa-user-tie"></i> Adminisztráció
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <li>
+                    <a class="dropdown-item" @click="addGameModal=true" href="#"
+                      ><i class="fa-light fa-plus"></i> Játék hozzáadás</a
+                    >
+                  </li>
+                  <li v-if="this.permission == 'admin'">
+                    <a
+                      class="dropdown-item"
+                      @click="changeAccountMoneyModal=true"
+                      href="#"
+                      ><i class="fa-light fa-euro-sign"></i> Egyenleg
+                      feltöltés</a
+                    >
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                </ul>
+              </li>
+            </ul>
+            <div class="d-flex" v-if="this.logged === 'true'">
+              <ul
+                class="navbar-nav me-auto mb-2 mb-lg-0"
+                v-for="rows in userData"
+              >
+                <li class="nav-item">
+                  <a
+                    class="nav-link text-white"
+                    @click="ViewMyProfile=true"
+                    href="#"
+                    ><i class="fa-light fa-user"></i>
+                    <strong>{{ rows.username }}</strong></a
+                  >
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="#"
+                    ><i class="fa-light fa-coins"></i> Egyenleged:
+                    {{rows.money}} €</a
+                  >
+                </li>
+                <a class="nav-link text-white" @click="logoutUser" href="#"
+                  ><i class="fa-light fa-right-to-bracket"></i> Kijelentkezés</a
+                >
+              </ul>
+            </div>
+            <div class="d-flex" v-else>
+              <a class="nav-link text-white" @click="openLoginPage" href="#"
+                ><i class="fa-light fa-right-to-bracket"></i> Bejelentkezés</a
+              >
+              <a class="nav-link text-white" @click="openRegisterPage" href="#"
+                ><i class="fa-light fa-plus"></i> Regisztráció</a
+              >
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div class="d-flex justify-content-center mt-4 mb-4" v-if="showAlert">
+        <div class="alert alert-danger w-50" role="alert">{{ alertMsg }}</div>
+      </div>
+
+      <div class="d-flex justify-content-center mt-4 mb-4" v-if="showSuccess">
+        <div class="alert alert-success w-50" role="alert">
+          {{ successMsg }}
+        </div>
+      </div>
+
+      <h4 class="text-center mt-2 mb-4">Köszöntelek a GameBase weboldalán!</h4>
+      <div class="container">
+        <div
+          id="carouselExampleCaptions"
+          class="carousel slide"
+          data-bs-ride="carousel"
+        >
+          <div class="carousel-indicators">
+            <button
+              type="button"
+              data-bs-target="#carouselExampleCaptions"
+              data-bs-slide-to="0"
+              class="active"
+              aria-current="true"
+              aria-label="Slide 1"
+            ></button>
+            <button
+              type="button"
+              data-bs-target="#carouselExampleCaptions"
+              data-bs-slide-to="1"
+              aria-label="Slide 2"
+            ></button>
+            <button
+              type="button"
+              data-bs-target="#carouselExampleCaptions"
+              data-bs-slide-to="2"
+              aria-label="Slide 3"
+            ></button>
+          </div>
+          <div class="carousel-inner h-50 rounded mb-5">
+            <div class="carousel-item active" data-bs-interval="10000">
+              <img
+                src="https://i.imgur.com/XveJVNa.jpg"
+                class="d-block w-100"
+                alt="It Takes Two"
+              />
+            </div>
+            <div class="carousel-item" v-for="row in topGames">
+              <img
+                :src="row.bannerUrl"
+                class="d-block w-100 h-100"
+                @error="$event.target.src='https://www.salonlfc.com/wp-content/uploads/2018/01/image-not-found-1-scaled-1150x647.png'"
+              />
+            </div>
+          </div>
+          <button
+            class="carousel-control-prev"
+            type="button"
+            data-bs-target="#carouselExampleCaptions"
+            data-bs-slide="prev"
+          >
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button
+            class="carousel-control-next"
+            type="button"
+            data-bs-target="#carouselExampleCaptions"
+            data-bs-slide="next"
+          >
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <div class="row">
+              <div class="col-md-12 text-center mb-2">
+                <h3 class="panel-title">Birtokodban lévő játékok</h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-body mb-5">
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+              <div
+                class="col d-flex align-items-stretch"
+                v-for="row in userGames"
+              >
+                <div class="card bg-secondary shadow-lg">
+                  <img :src="row.banner" class="card-img-top" />
+                  <div class="card-body">
+                    <h5 class="card-title text-center">
+                      {{ row.gameName }}<br /><em class="text-black-50"
+                        >Megvásárolva ({{row.purchDate}})</em
+                      >
+                    </h5>
+                    <h6 class="text-center">
+                      <span class="badge bg-primary"
+                        >Játszott idő:
+                        <strong>{{row.playTime}}</strong> perc</span
+                      >
+                    </h6>
+                    <hr />
+                    <p class="card-text">{{ row.desc }}</p>
+                  </div>
+                  <div class="card-footer">
+                    <button type="button" class="btn btn-success btn-sm w-100">
+                      <i class="fa-light fa-download"></i> Letöltés
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="loginModal">
+          <transition name="model">
+            <div class="modal-mask">
+              <div class="modal-wrapper">
+                <div class="modal-dialog">
+                  <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                      <h5 class="modal-title">GameBase - Bejelentkezés</h5>
+                      <button
+                        type="button"
+                        class="btn-close"
+                        @click="loginModal=false"
+                      ></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="form-group">
+                        <label>Felhasználónév</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          v-model="username"
+                          placeholder="Kérlek gépeld be a felhasználónevedet!"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label>Jelszó</label>
+                        <div class="input-group mb-3">
+                          <input
+                            v-if="showPassword"
+                            type="text"
+                            class="form-control"
+                            v-model="password"
+                            placeholder="Kérlek gépeld be a jelszavadat!"
+                          />
+                          <input
+                            v-else
+                            type="password"
+                            class="form-control"
+                            v-model="password"
+                            placeholder="Kérlek gépeld be a jelszavadat!"
+                          />
+                          <button class="btn btn-secondary" @click="toggleShow">
+                            <i
+                              class="fas"
+                              :class="{ 'fa-eye-slash': showPassword, 'fa-eye': !showPassword }"
+                            ></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="text-center">
+                        <button
+                          type="button"
+                          class="btn btn-success w-100"
+                          @click="submitData"
+                        >
+                          <i class="fa-light fa-right-to-bracket"></i>
+                          Bejelentkezés
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <div v-if="registerModal">
+          <transition name="model">
+            <div class="modal-mask">
+              <div class="modal-wrapper">
+                <div class="modal-dialog">
+                  <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                      <h5 class="modal-title">GameBase - Regisztráció</h5>
+                      <button
+                        type="button"
+                        class="btn-close"
+                        @click="registerModal=false"
+                      ></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="form-group">
+                        <label>Felhasználónév</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          v-model="username"
+                          placeholder="Kérlek gépeld be a felhasználónevedet!"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label>Jelszó</label>
+                        <div class="input-group">
+                          <input
+                            v-if="showPassword"
+                            type="text"
+                            class="form-control"
+                            v-model="password"
+                            placeholder="Kérlek gépeld be a jelszavadat!"
+                          />
+                          <input
+                            v-else
+                            type="password"
+                            class="form-control"
+                            v-model="password"
+                            placeholder="Kérlek gépeld be a jelszavadat!"
+                          />
+                          <button class="btn btn-secondary" @click="toggleShow">
+                            <i
+                              class="fas"
+                              :class="{ 'fa-eye-slash': showPassword, 'fa-eye': !showPassword }"
+                            ></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="form-group">
+                        <label>Jelszó 2x</label>
+                        <input
+                          type="password"
+                          class="form-control"
+                          v-model="password_2"
+                          placeholder="Kérlek gépeld be a jelszavadat!"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label>Email cím</label>
+                        <input
+                          type="email"
+                          class="form-control"
+                          v-model="email"
+                          placeholder="Kérlek gépeld be az email címedet!"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label>Országod</label>
+                        <select
+                          name="orszag"
+                          class="form-select"
+                          v-model="orszag"
+                        >
+                          <option value="GB">United Kingdom</option>
+                          <option value="AL">Albania</option>
+                          <option value="AD">Andorra</option>
+                          <option value="AT">Austria</option>
+                          <option value="BY">Belarus</option>
+                          <option value="BE">Belgium</option>
+                          <option value="BA">Bosnia and Herzegovina</option>
+                          <option value="BG">Bulgaria</option>
+                          <option value="HR">Croatia (Hrvatska)</option>
+                          <option value="CY">Cyprus</option>
+                          <option value="CZ">Czech Republic</option>
+                          <option value="FR">France</option>
+                          <option value="GI">Gibraltar</option>
+                          <option value="DE">Germany</option>
+                          <option value="GR">Greece</option>
+                          <option value="VA">
+                            Holy See (Vatican City State)
+                          </option>
+                          <option value="HU" selected>Hungary</option>
+                          <option value="IT">Italy</option>
+                          <option value="LI">Liechtenstein</option>
+                          <option value="LU">Luxembourg</option>
+                          <option value="MK">Macedonia</option>
+                          <option value="MT">Malta</option>
+                          <option value="MD">Moldova</option>
+                          <option value="MC">Monaco</option>
+                          <option value="ME">Montenegro</option>
+                          <option value="NL">Netherlands</option>
+                          <option value="PL">Poland</option>
+                          <option value="PT">Portugal</option>
+                          <option value="RO">Romania</option>
+                          <option value="SM">San Marino</option>
+                          <option value="RS">Serbia</option>
+                          <option value="SK">Slovakia</option>
+                          <option value="SI">Slovenia</option>
+                          <option value="ES">Spain</option>
+                          <option value="UA">Ukraine</option>
+                          <option value="DK">Denmark</option>
+                          <option value="EE">Estonia</option>
+                          <option value="FO">Faroe Islands</option>
+                          <option value="FI">Finland</option>
+                          <option value="GL">Greenland</option>
+                          <option value="IS">Iceland</option>
+                          <option value="IE">Ireland</option>
+                          <option value="LV">Latvia</option>
+                          <option value="LT">Lithuania</option>
+                          <option value="NO">Norway</option>
+                          <option value="SJ">
+                            Svalbard and Jan Mayen Islands
+                          </option>
+                          <option value="SE">Sweden</option>
+                          <option value="CH">Switzerland</option>
+                          <option value="TR">Turkey</option>
+                        </select>
+                      </div>
+
+                      <div class="text-center mt-2">
+                        <button
+                          type="button"
+                          class="btn btn-success w-100"
+                          @click="submitRegister"
+                        >
+                          <i class="fa-light fa-right-to-bracket"></i>
+                          Regisztráció befejezése
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Vásárlási modal -->
+        <div v-if="buyModal">
+          <transition name="model">
+            <div class="modal-mask">
+              <div class="modal-wrapper">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Vásárlás megerősítő</h5>
+                      <button
+                        type="button"
+                        class="btn-close bg-danger"
+                        @click="buyModal=false"
+                      ></button>
+                    </div>
+                    <div
+                      class="modal-body text-center"
+                      v-for="rows in gameData"
+                    >
+                      <h3>Biztosan szeretnéd megvásárolni ezt a játékot?</h3>
+                      <ul class="list-unstyled">
+                        <li>
+                          <span class="fw-bold">Aktuális egyenleged:</span>
+                          {{userMoney}}€
+                        </li>
+                        <li>
+                          <span class="fw-bold">Játék ára:</span>
+                          {{rows.gamePrice}}€
+                        </li>
+                        <li
+                          v-if="userMoney < rows.gamePrice"
+                          class="fw-bold text-danger"
+                        >
+                          Nincs elegendő egyenleged a vásárláshoz!
+                        </li>
+                        <li v-else>
+                          <span class="fw-bold"
+                            >Új egyenleged a vásárlás után:</span
+                          >
+                          {{ userMoney-rows.gamePrice }}€
+                        </li>
+                      </ul>
+                      <button
+                        type="button"
+                        @click="ConfBuyGame($event)"
+                        class="btn btn-success w-100"
+                        :value="rows.id"
+                        v-if="userMoney >= rows.gamePrice"
+                      >
+                        <i class="fa-light fa-cart-shopping"></i> Vásárlás
+                        végrehajtása
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Jéték hozzáadás modal -->
+        <div v-if="addGameModal">
+          <transition name="model">
+            <div class="modal-mask">
+              <div class="modal-wrapper">
+                <div class="modal-dialog">
+                  <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                      <h5 class="modal-title">GameBase - Játék hozzáadása</h5>
+                      <button
+                        type="button"
+                        class="btn-close bg-danger"
+                        @click="addGameModal=false"
+                      ></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="form-group mb-2">
+                        <label>Játék neve</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          v-model="gameName"
+                          placeholder="Kérlek gépeld be a játék nevét!"
+                        />
+                      </div>
+
+                      <div class="form-group mb-2">
+                        <label>Játék leírása</label>
+                        <textarea
+                          v-model="gameDesc"
+                          class="form-control"
+                          rows="5"
+                          placeholder="Gépeld be a játék leírását"
+                        ></textarea>
+                      </div>
+
+                      <label>Játék értéke</label>
+                      <div class="input-group">
+                        <input
+                          type="number"
+                          class="form-control"
+                          v-model="gamePrice"
+                          placeholder="Gépeld be a játék árát"
+                        />
+                        <span class="input-group-text" id="basic-addon2"
+                          >€</span
+                        >
+                      </div>
+
+                      <div class="form-group mb-2">
+                        <label>Kategória</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          v-model="category"
+                          placeholder="Gépeld be a játék kategóriját (Vesszővel elválasztva!)"
+                        />
+                        <div class="text-center mt-1">
+                          <span>Néhány korábbi kategória</span><br />
+                          <span class="badge bg-secondary">FPS</span>
+                          <span class="badge bg-secondary">Lövöldözős</span>
+                          <span class="badge bg-secondary">Többjátékos</span>
+                          <span class="badge bg-secondary">Együttműködő</span>
+                        </div>
+                      </div>
+
+                      <div class="form-group mb-2">
+                        <label>PEGI</label>
+                        <select class="form-select" v-model="pegi">
+                          <option selected>Válassz a listából</option>
+                          <option value="3">PEGI3</option>
+                          <option value="7">PEGI7</option>
+                          <option value="12">PEGI12</option>
+                          <option value="16">PEGI16</option>
+                          <option value="18">PEGI18</option>
+                        </select>
+                      </div>
+
+                      <div class="form-group mb-2">
+                        <label>Játék kiadásának ideje</label>
+                        <input
+                          type="date"
+                          class="form-control"
+                          v-model="releaseDate"
+                        />
+                      </div>
+
+                      <div class="form-group mb-2">
+                        <label>Borítókép</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          v-model="bannerUrl"
+                          placeholder="Másold be a játék borítóképét!"
+                        />
+                      </div>
+
+                      <div class="form-group mb-2">
+                        <label>Kiadó</label>
+                        <select class="form-select" v-model="publisher">
+                          <option selected>Válassz a listából</option>
+                          <option
+                            v-for="row in PublisherList"
+                            :value="row.Name"
+                          >
+                            {{row.Name}}
+                          </option>
+                        </select>
+                      </div>
+
+                      <div class="text-center mt-2">
+                        <button
+                          type="button"
+                          class="btn btn-success w-100"
+                          @click="submitNewGame"
+                        >
+                          <i class="fa-light fa-upload"></i> Hozzáadás
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Egyenleg jóváírás modal -->
+        <div v-if="changeAccountMoneyModal">
+          <transition name="model">
+            <div class="modal-mask">
+              <div class="modal-wrapper">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Vásárlás megerősítő</h5>
+                      <button
+                        type="button"
+                        class="btn-close bg-danger"
+                        @click="changeAccountMoneyModal=false"
+                      ></button>
+                    </div>
+                    <div class="modal-body text-center">
+                      <h2>Felhasználó egyenlegének megváltoztatása</h2>
+
+                      <div class="form-group mb-2">
+                        <label>Felhasználó</label>
+                        <select class="form-select" v-model="user">
+                          <option selected>Válassz a listából</option>
+                          <option v-for="row in AllUserList" :value="row.id">
+                            {{row.username}} - {{row.money}}€
+                          </option>
+                        </select>
+                      </div>
+
+                      <label>Játék értéke</label>
+                      <div class="input-group mb-2">
+                        <input
+                          type="number"
+                          class="form-control"
+                          min="0"
+                          v-model="money"
+                          placeholder="Gépeld be a felhasználó új egyenlegét"
+                        />
+                        <span class="input-group-text" id="basic-addon2"
+                          >€</span
+                        >
+                      </div>
+
+                      <div class="text-center mt-2">
+                        <button
+                          type="button"
+                          class="btn btn-success w-100"
+                          @click="submitUpdatedBalance"
+                        >
+                          <i class="fa-light fa-floppy-disk"></i> Mentés
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Profile modal -->
+        <div v-if="ViewMyProfile">
+          <transition name="model">
+            <div class="modal-mask">
+              <div class="modal-wrapper">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Profilod szerkesztése</h5>
+                      <button
+                        type="button"
+                        class="btn-close bg-danger"
+                        @click="ViewMyProfile=false"
+                      ></button>
+                    </div>
+                    <div class="modal-body text-center">
+                      <div class="form-group mb-2">
+                        <label>Aktuális jelszavad</label>
+                        <input
+                          type="password"
+                          class="form-control"
+                          v-model="Currentpassword"
+                          placeholder="Gépeld be az aktuális jelszavadat"
+                        />
+                      </div>
+
+                      <div class="form-group mb-2">
+                        <label>Új jelszavad 1x</label>
+                        <input
+                          type="password"
+                          class="form-control"
+                          v-model="password"
+                          placeholder="Gépeld be az új jelszavadat"
+                        />
+                      </div>
+
+                      <div class="form-group mb-2">
+                        <label>Új jelszavad 2x</label>
+                        <input
+                          type="password"
+                          class="form-control"
+                          v-model="password_2"
+                          placeholder="Gépeld be az új jelszavadat"
+                        />
+                      </div>
+
+                      <div class="text-center mt-2">
+                        <button
+                          type="button"
+                          class="btn btn-success w-100"
+                          @click="UpdateMyPassword"
+                        >
+                          <i class="fa-light fa-floppy-disk"></i> Mentés
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+<script>
+  var application = new Vue({
+    el: "#HomeApp",
+    data: {
+      allData: "",
+      topGames: "",
+      userData: "",
+      gameData: "",
+      userGames: "",
+      PublisherList: "",
+      AllUserList: "",
+      myModel: false,
+      loginModal: false,
+      registerModal: false,
+      buyModal: false,
+      addGameModal: false,
+      changeAccountMoneyModal: false,
+      ViewMyProfile: false,
+      showPassword: false,
+      showAlert: false,
+      showSuccess: false,
+      logged: false,
+      userMoney: 0,
+      alertMsg: "",
+      successMsg: "",
+      username: "",
+      password: "",
+      password_2: "",
+      Currentpassword: "",
+      email: "",
+      orszag: "HU",
+      permission: "",
+      pegi: "Válassz a listából",
+      publisher: "Válassz a listából",
+      user: "Válassz a listából",
+      gameName: "",
+      gameDesc: "",
+      gamePrice: "",
+      category: "",
+      releaseDate: "",
+      bannerUrl: "",
+      money: "",
+    },
+    methods: {
+      // Játékok lekérése az adatbázisból //
+      fetchAllData: function () {
+        axios
+          .post("https://new.bendev.hu/school/action.php", {
+            action: "fetchall",
+          })
+          .then(function (response) {
+            application.allData = response.data;
+          });
+      },
+
+      // Belépett felhasználó adatainak lekérése
+      fetchLoggedUserData: function () {
+        username = this.$cookies.get("user");
+        axios
+          .post("https://new.bendev.hu/school/action.php", {
+            action: "fetchUserData",
+            username,
+          })
+          .then(function (response) {
+            application.userData = response.data;
+            application.userMoney = response.data[0].money;
+            application.permission = response.data[0].permission;
+          });
+        this.fetchUserGames();
+      },
+      // Felhasználó összes játékának lekérdezése
+      fetchUserGames: function () {
+        if (this.logged == "true") {
+          axios
+            .post("https://new.bendev.hu/school/action.php", {
+              action: "fetchUserGames",
+              username,
+            })
+            .then(function (response) {
+              application.userGames = response.data;
+            });
+        }
+      },
+      // Az összes kiadó lekérdezése
+      fetchPublishers: function () {
+        axios
+          .post("https://new.bendev.hu/school/action.php", {
+            action: "fetchPublishers",
+          })
+          .then(function (response) {
+            application.PublisherList = response.data;
+          });
+      },
+      fetchAllUser: function () {
+        axios
+          .post("https://new.bendev.hu/school/action.php", {
+            action: "fetchAll",
+          })
+          .then(function (response) {
+            application.AllUserList = response.data;
+          });
+      },
+
+      // TOP listás játékok lekérése //
+      fetchTopGames: function () {
+        axios
+          .post("https://new.bendev.hu/school/action.php", {
+            action: "fetchTopGames",
+          })
+          .then(function (response) {
+            application.topGames = response.data;
+          });
+      },
+      // Modal ablak megnyítása //
+      openModel: function () {
+        application.myModel = true;
+      },
+      toggleShow: function () {
+        this.showPassword = !this.showPassword;
+      },
+
+      //
+      openLoginPage: function () {
+        application.username = "";
+        application.password = "";
+        application.loginModal = true;
+      },
+
+      //
+      openRegisterPage: function () {
+        application.username = "";
+        application.password = "";
+        application.registerModal = true;
+      },
+
+      // Vásárlás modal megnyitása
+      OpenbuyGame: function (e) {
+        const buttonValue = e.target.value;
+        const username = this.$cookies.get("user");
+        axios
+          .post("https://new.bendev.hu/school/action.php", {
+            action: "fetchSelectedGame",
+            buttonValue,
+            username,
+          })
+          .then(function (response) {
+            if (response.data == "owned") {
+              window.scrollTo(0, 0);
+              application.showAlert = true;
+              application.buyModal = false;
+              application.alertMsg =
+                "Sikertelen vásárlás! Ez a játék már a könyvtáradban van!";
+            } else {
+              application.gameData = response.data;
+              application.buyModal = true;
+            }
+          });
+      },
+      // Lekérdezi, hogy bevan-e lépve a felhasználó
+      getUserLogged: function () {
+        this.logged = this.$cookies.get("login");
+        this.fetchLoggedUserData();
+        const userToken = this.$cookies.get("user");
+        const loginToken = this.$cookies.get("login");
+
+        if (userToken == null || loginToken == null) {
+          this.$cookies.set("login", false, "1h"); // 1 órán keresztül aktív a cookie
+          this.$cookies.set("user", "none", "1h"); // 1 órán keresztül aktív a cookie
+        }
+      },
+      // Kijelentkezés
+      logoutUser: function () {
+        this.$cookies.set("login", false);
+        this.logged = false;
+        location.href = "index.html";
+      },
+      ConfBuyGame: function (e) {
+        const buttonValue = e.target.value;
+        const username = this.$cookies.get("user");
+        axios
+          .post("https://new.bendev.hu/school/action.php", {
+            action: "buyCurrentGame",
+            buttonValue,
+            username,
+          })
+          .then(function (response) {
+            if (response.data == "success") {
+              window.scrollTo(0, 0);
+              application.showSuccess = true;
+              application.buyModal = false;
+              application.successMsg =
+                "Sikeres vásárlás! A játék elérhető a 'játékaim' menüben!";
+            } else if (response.data == "no") {
+              window.scrollTo(0, 0);
+              application.showAlert = true;
+              application.buyModal = false;
+              application.alertMsg =
+                "Sikertelen vásárlás! Nincs elegendő összeged a vásárláshoz!";
+            } else {
+              window.scrollTo(0, 0);
+              application.showAlert = true;
+              application.buyModal = false;
+              application.alertMsg =
+                "Sikertelen vásárlás! Váratlan hiba történt!";
+            }
+          });
+      },
+      // Modal ablak megnyítása VÉGE //
+
+      // Felhasználó bejelentkezése
+      submitData: function () {
+        if (application.username != "" && application.password != "") {
+          axios
+            .post("https://new.bendev.hu/school/action.php", {
+              action: "loginUser",
+              username: application.username,
+              password: application.password,
+              headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Content-type": "application/json",
+              },
+            })
+            .then(function (response) {
+              if (response.data == true) {
+                this.logged = true;
+                this.$cookies.set("login", true, "1h"); // 1 órán keresztül aktív a cookie
+                this.$cookies.set("user", application.username, "1h"); // 1 órán keresztül aktív a cookie
+                application.fetchLoggedUserData();
+                location.reload();
+              } else {
+                this.$cookies.set("login", false);
+                this.logged = false;
+                window.scrollTo(0, 0);
+                application.showAlert = true;
+                application.loginModal = false;
+                application.alertMsg =
+                  "Sikertelen bejelentkezés! Az adatok nem megfelelőek!";
+              }
+            });
+        } else {
+          application.showAlert = true;
+          application.loginModal = false;
+          application.alertMsg =
+            "A felhasználónév és vagy a jelszó kitöltése kötelező!";
+        }
+      },
+      // Felhasználó regisztráció
+      submitRegister: function () {
+        if (
+          this.username &&
+          this.password &&
+          this.password_2 &&
+          this.email &&
+          this.orszag
+        ) {
+          const username = this.username;
+          const password = this.password;
+          const password_2 = this.password_2;
+          const email = this.email;
+          const orszag = this.orszag;
+          if (password != password_2) {
+            application.showAlert = true;
+            application.registerModal = false;
+            application.alertMsg = "A begépelt jelszavak nem egyeznek!";
+          }
+
+          axios
+            .post("https://new.bendev.hu/school/action.php", {
+              action: "registerUser",
+              username,
+              password,
+              email,
+              orszag,
+            })
+            .then(function (response) {
+              if (response.data == "ok") {
+                this.logged = true;
+                this.$cookies.set("login", true, "1h"); // 1 órán keresztül aktív a cookie
+                this.$cookies.set("user", application.username, "1h"); // 1 órán keresztül aktív a cookie
+                application.fetchLoggedUserData();
+                location.reload();
+              } else if (response.data == "error") {
+                window.scrollTo(0, 0);
+                application.showAlert = true;
+                application.registerModal = false;
+                application.alertMsg =
+                  "Váratlan hiba történt a regisztráció közben!";
+              } else {
+                window.scrollTo(0, 0);
+                application.showAlert = true;
+                application.registerModal = false;
+                application.alertMsg =
+                  "Sikertelen regisztráció! Ez a felhasználó már szerepel az adatbázisban!";
+              }
+            });
+        } else {
+          application.showAlert = true;
+          application.registerModal = false;
+          application.alertMsg = "A mezők kitöltése kötelező!";
+        }
+      },
+      submitUpdatedBalance: function () {
+        if (this.user && this.money) {
+          const user = this.user;
+          const money = this.money;
+
+          axios
+            .post("https://new.bendev.hu/school/action.php", {
+              action: "updateUserBalance",
+              user,
+              money,
+            })
+            .then(function (response) {
+              if (response.data == "OK") {
+                window.scrollTo(0, 0);
+                application.showSuccess = true;
+                application.changeAccountMoneyModal = false;
+                application.successMsg =
+                  "Sikeresen felülírtad a felhasználó egyenlegét!";
+              } else {
+                window.scrollTo(0, 0);
+                application.showAlert = true;
+                application.changeAccountMoneyModal = false;
+                application.alertMsg =
+                  "Váratlan hiba történt az egyenleg módosítása közben!";
+              }
+            });
+        }
+      },
+      UpdateMyPassword: function () {
+        if (this.password && this.password_2 && this.Currentpassword) {
+          const password = this.password;
+          const password_2 = this.password_2;
+          const Currentpassword = this.Currentpassword;
+          const username = this.$cookies.get("user");
+
+          if (password != password_2) {
+            window.scrollTo(0, 0);
+            application.showAlert = true;
+            application.ViewMyProfile = false;
+            application.alertMsg = "A begépelt jelszavak nem egyeznek!";
+          } else {
+            axios
+              .post("https://new.bendev.hu/school/action.php", {
+                action: "updateMyData",
+                username,
+                password,
+                password_2,
+                Currentpassword,
+              })
+              .then(function (response) {
+                if (response.data == "OK") {
+                  window.scrollTo(0, 0);
+                  application.showSuccess = true;
+                  application.ViewMyProfile = false;
+                  application.successMsg =
+                    "Sikeresen módosítottad az adataidat!";
+                } else if (response.data == "passError") {
+                  window.scrollTo(0, 0);
+                  application.showAlert = true;
+                  application.ViewMyProfile = false;
+                  application.alertMsg =
+                    "Hiba! A jelenlegi jelszavad nem megfelelő!";
+                } else {
+                  window.scrollTo(0, 0);
+                  application.showAlert = true;
+                  application.ViewMyProfile = false;
+                  application.alertMsg =
+                    "Váratlan hiba történt! Probáld újra később!";
+                }
+              });
+          }
+        }
+      },
+
+      // Játék hozzáadás
+      submitNewGame: function () {
+        if (
+          this.gameName &&
+          this.gameDesc &&
+          this.gamePrice &&
+          this.category &&
+          this.pegi &&
+          this.releaseDate &&
+          this.bannerUrl &&
+          this.publisher
+        ) {
+          const gameName = this.gameName;
+          const gameDesc = this.gameDesc;
+          const gamePrice = this.gamePrice;
+          const category = this.category;
+          const pegi = this.pegi;
+          const releaseDate = this.releaseDate;
+          const banner = this.bannerUrl;
+          const publisher = this.publisher;
+
+          axios
+            .post("https://new.bendev.hu/school/action.php", {
+              action: "addGameToBase",
+              gameName,
+              gameDesc,
+              gamePrice,
+              category,
+              pegi,
+              releaseDate,
+              banner,
+              publisher,
+            })
+            .then(function (response) {
+              if (response.data == "OK") {
+                window.scrollTo(0, 0);
+                application.showSuccess = true;
+                application.addGameModal = false;
+                application.successMsg =
+                  "Sikeresen hozzáadtad a játékot az adatbázishoz!";
+              } else {
+                window.scrollTo(0, 0);
+                application.showAlert = true;
+                application.addGameModal = false;
+                application.alertMsg =
+                  "Váratlan hiba történt a játék hozzáadása közben!";
+              }
+            });
+        } else {
+          window.scrollTo(0, 0);
+          application.showAlert = true;
+          application.addGameModal = false;
+          application.alertMsg =
+            "Sikertelen hozzáadás! A mezők kitöltése kötelező!";
+        }
+      },
+    },
+    created: function () {
+      this.fetchAllData();
+      this.fetchTopGames();
+      this.getUserLogged();
+      this.fetchPublishers();
+      this.fetchAllUser();
+    },
+  });
+</script>

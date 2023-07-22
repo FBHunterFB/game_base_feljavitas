@@ -1,0 +1,1 @@
+# A vizsgaremek desktop része
