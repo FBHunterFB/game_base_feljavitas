@@ -3,17 +3,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Gamebase weboldal</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
-      crossorigin="anonymous"
-    />
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-      crossorigin="anonymous"
-    ></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-cookies@1.8.3/vue-cookies.min.js"></script>
@@ -26,265 +16,55 @@
       integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8="
       crossorigin="anonymous"
     ></script>
-    <!-- Google recaptcha -->
-    <style>
-      .modal-mask {
-        position: fixed;
-        z-index: 9998;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: table;
-        transition: opacity 0.3s ease;
-      }
-
-      .modal-wrapper {
-        display: table-cell;
-        vertical-align: middle;
-      }
-    </style>
   </head>
-  <body class="bg-dark text-white">
+  <body class="bg-zinc-950 text-gray-50 transition ease-in-out delay-150">
     <div id="HomeApp">
       <nav
-        class="navbar navbar-expand-lg navbar-dark bg-dark border-success border-bottom"
+        class="rounded-lg my-2 p-2 sticky top-1 w-full mx-auto grid grid-cols-3"
       >
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#"
-            ><strong class="text-success">GameBase</strong> - Játékadatbázis</a
-          >
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="index.html"
-                  ><i class="fa-light fa-basket-shopping"></i> Áruház</a
-                >
-              </li>
-              <li class="nav-item" v-if="this.logged === 'true'">
-                <a class="nav-link" href="library.html"
-                  ><i class="fa-light fa-gamepad"></i> Játékaim</a
-                >
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="community"
-                  ><i class="fa-light fa-user-group"></i> Közösség
-                  <span class="badge rounded-pill bg-secondary"
-                    >Hamarosan</span
-                  ></a
-                >
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="about.html"
-                  ><i class="fa-light fa-phone"></i> Rólunk</a
-                >
-              </li>
-              <li
-                class="nav-item dropdown"
-                v-if="this.logged === 'true' && this.permission != 'user'"
-              >
-                <a
-                  class="nav-link dropdown-toggle text-danger"
-                  href="#"
-                  id="navbarDropdown"
-                  role="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  <i class="fa-light fa-user-tie"></i> Adminisztráció
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                  <li>
-                    <a class="dropdown-item" @click="addGameModal=true" href="#"
-                      ><i class="fa-light fa-plus"></i> Játék hozzáadás</a
-                    >
-                  </li>
-                  <li v-if="this.permission == 'admin'">
-                    <a
-                      class="dropdown-item"
-                      @click="changeAccountMoneyModal=true"
-                      href="#"
-                      ><i class="fa-light fa-euro-sign"></i> Egyenleg
-                      feltöltés</a
-                    >
-                  </li>
-                  <li><hr class="dropdown-divider" /></li>
-                </ul>
-              </li>
-            </ul>
-            <div class="d-flex" v-if="this.logged === 'true'">
-              <ul
-                class="navbar-nav me-auto mb-2 mb-lg-0"
-                v-for="rows in userData"
-              >
-                <li class="nav-item">
-                  <a
-                    class="nav-link text-white"
-                    @click="ViewMyProfile=true"
-                    href="#"
-                    ><i class="fa-light fa-user"></i>
-                    <strong>{{ rows.username }}</strong></a
-                  >
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="#"
-                    ><i class="fa-light fa-coins"></i> Egyenleged:
-                    {{rows.money}} €</a
-                  >
-                </li>
-                <a class="nav-link text-white" @click="logoutUser" href="#"
-                  ><i class="fa-light fa-right-to-bracket"></i> Kijelentkezés</a
-                >
-              </ul>
-            </div>
-            <div class="d-flex" v-else>
-              <a class="nav-link text-white" @click="openLoginPage" href="#"
-                ><i class="fa-light fa-right-to-bracket"></i> Bejelentkezés</a
-              >
-              <a class="nav-link text-white" @click="openRegisterPage" href="#"
-                ><i class="fa-light fa-plus"></i> Regisztráció</a
-              >
-            </div>
-          </div>
-        </div>
+      <div class="flex flex-row items-center bg-zinc-900">
+        <a href="#" class="p-2 mx-2 font-semibold bg-zinc-700/25 hover:bg-zinc-700/50 text-white text-2xl rounded-lg shadow-sm">Gamebase</a>
+        <a class="font-bold uppercase p-2 mx-2 hover:bg-cyan-500 hover:shadow-lg hover:shadow-cyan-500/50 hover:text-black rounded-lg transition ease-in-out delay-100" aria-current="page" href="index.html">Áruház</a>
+        <a href="#" class="font-bold uppercase p-2 mx-2 hover:bg-cyan-500 hover:shadow-lg hover:shadow-cyan-500/50 hover:text-black rounded-lg transition ease-in-out delay-100">Közösség</a>
+      </div>
+      <div>
+
+      </div>
+      <div class="flex flex-row-reverse items-center bg-zinc-900">
+        <a href="#" class="p-2 mx-2 font-semibold hover:bg-cyan-500 hover:shadow-lg hover:shadow-cyan-500/50 hover:text-black rounded-lg transition ease-in-out delay-100">Regisztráció</a>
+        <a href="#" class="p-2 mx-2 font-semibold hover:bg-cyan-500 hover:shadow-lg hover:shadow-cyan-500/50 hover:text-black rounded-lg transition ease-in-out delay-100" @click="openLoginPage">Bejelentkezés</a>
+      </div>
       </nav>
-
-      <div class="d-flex justify-content-center mt-4 mb-4" v-if="showAlert">
-        <div class="alert alert-danger w-50" role="alert">{{ alertMsg }}</div>
+      
+      <div class="mx-auto w-2/4 flex flex-col">
+        <h2 class="relative top-5 rounded-t-lg text-2xl backdrop-blur-xl p-2 text-center w-full bg-red-500/30">Közösség</h2>
+        <img
+          src="https://i.imgur.com/McASO7P.png"
+          class="img-fluid rounded"
+          alt="GameBase Kontroller"
+        />
+        <p class="relative bottom-5 rounded-b-lg backdrop-blur-xl p-2 text-center w-full bg-red-500/30">
+          A GameBase csapata törekszik arra, hogy a közösség mindig
+          elfogadó és segítőkész legyen a többi felhasználó felé is. <br>
+          Moderátoraink azért felelnek, hogy a közösség megtartsa a jó
+          hírét és azonnal cselekedjenek ha valaki bomlasztó magatartást
+          tanúsít
+        </p>
       </div>
 
-      <div class="d-flex justify-content-center mt-4 mb-4" v-if="showSuccess">
-        <div class="alert alert-success w-50" role="alert">
-          {{ successMsg }}
-        </div>
+      <div class="mx-auto w-2/4 flex flex-col">
+        <h2 class="relative top-5 rounded-t-lg text-2xl backdrop-blur-xl p-2 text-center w-full bg-cyan-500/30">Platform független</h2>
+        <img
+        src="https://i.imgur.com/qKidHQB.png"
+        class="img-fluid rounded"
+        alt="GameBase Kontroller"
+        />
+        <p class="relative bottom-5 rounded-b-lg backdrop-blur-xl p-2 text-center w-full bg-cyan-500/30">
+          Törekszünk arra, hogy az általunk kiadott kliens Platform
+          független maradjon és minden eszközön a felhasználók ugyan azt
+          az élményt kapják
+        </p>
       </div>
-
-      <h4 class="text-center mt-2 mb-4">Köszöntelek a GameBase weboldalán!</h4>
-      <div class="container">
-        <div
-          id="carouselExampleCaptions"
-          class="carousel slide"
-          data-bs-ride="carousel"
-        >
-          <div class="carousel-indicators">
-            <button
-              type="button"
-              data-bs-target="#carouselExampleCaptions"
-              data-bs-slide-to="0"
-              class="active"
-              aria-current="true"
-              aria-label="Slide 1"
-            ></button>
-            <button
-              type="button"
-              data-bs-target="#carouselExampleCaptions"
-              data-bs-slide-to="1"
-              aria-label="Slide 2"
-            ></button>
-            <button
-              type="button"
-              data-bs-target="#carouselExampleCaptions"
-              data-bs-slide-to="2"
-              aria-label="Slide 3"
-            ></button>
-          </div>
-          <div class="carousel-inner h-50 rounded mb-5">
-            <div class="carousel-item active" data-bs-interval="10000">
-              <img
-                src="https://i.imgur.com/XveJVNa.jpg"
-                class="d-block w-100"
-                alt="It Takes Two"
-              />
-            </div>
-            <div class="carousel-item" v-for="row in topGames">
-              <img
-                :src="row.bannerUrl"
-                class="d-block w-100 h-100"
-                @error="$event.target.src='https://www.salonlfc.com/wp-content/uploads/2018/01/image-not-found-1-scaled-1150x647.png'"
-              />
-            </div>
-          </div>
-          <button
-            class="carousel-control-prev"
-            type="button"
-            data-bs-target="#carouselExampleCaptions"
-            data-bs-slide="prev"
-          >
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-          </button>
-          <button
-            class="carousel-control-next"
-            type="button"
-            data-bs-target="#carouselExampleCaptions"
-            data-bs-slide="next"
-          >
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-          </button>
-        </div>
-
-        <div class="panel panel-default">
-          <div class="panel-heading">
-            <div class="row">
-              <div class="col-md-12 text-center mb-2">
-                <h1 class="panel-title">GameBase</h1>
-                <h3>~ Játékok és közösség egyhelyen ~</h3>
-              </div>
-            </div>
-          </div>
-          <div class="row mt-4">
-            <div class="col-md-6 text-center mb-2">
-              <img
-                src="https://i.imgur.com/McASO7P.png"
-                class="img-fluid rounded"
-                alt="GameBase Kontroller"
-              />
-            </div>
-            <div class="col-md-6 text-start mb-2">
-              <h2>Közösség</h2>
-              <p>
-                A GameBase csapata törekszik arra, hogy a közösség mindig
-                elfogadó és segítőkész legyen a többi felhasználó felé is.
-              </p>
-              <p>
-                Moderátoraink azért felelnek, hogy a közösség megtartsa a jó
-                hírét és azonnal cselekedjenek ha valaki bomlasztó magatartást
-                tanúsít
-              </p>
-            </div>
-          </div>
-
-          <div class="row mt-4">
-            <div class="col-md-6 text-center mb-2">
-              <h2>Platform független</h2>
-              <p>
-                Törekszünk arra, hogy az általunk kiadott kliens Platform
-                független maradjon és minden eszközön a felhasználók ugyan azt
-                az élményt kapják
-              </p>
-            </div>
-            <div class="col-md-6 text-start mb-2">
-              <img
-                src="https://i.imgur.com/qKidHQB.png"
-                class="img-fluid rounded"
-                alt="GameBase Kontroller"
-              />
-            </div>
-          </div>
-        </div>
 
         <div v-if="loginModal">
           <transition name="model">
