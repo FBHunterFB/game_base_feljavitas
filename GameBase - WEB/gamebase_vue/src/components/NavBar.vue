@@ -49,8 +49,8 @@ const userStore = useUserStore()
             class="text-white p-2 font-semibold">Kijelentkezés</button>
             <router-link
             to="/addbalance"
-            class="text-white px-3 py-2 bg-lime-600/50 rounded-r-lg font-semibold">{{ userStore.balance }} Ft - {{ userStore.balanceInEUR }} €</router-link>
-            <p class="text-white p-2 font-semibold rounded-l-lg bg-slate-600/50 px-6 py-2">{{ userStore.username }}</p>
+            class="text-white px-3 py-2 bg-lime-600/50 rounded-r-lg font-semibold">{{ userStore.balanceInHUF }} Ft - {{ userStore.balance }} €</router-link>
+            <p class="text-white p-2 font-semibold rounded-l-lg bg-slate-600/50 px-6 py-2">{{ userStore.shortenUserName() }}</p>
         </div>
     </nav>
 </template>
