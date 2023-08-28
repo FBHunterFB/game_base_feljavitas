@@ -1,33 +1,50 @@
-import { ref, computed } from 'vue'
+import { ref, inject } from 'vue'
 import { defineStore } from 'pinia'
+import axios from 'axios'
 
 export const useGameStore = defineStore('game', () => {
-  const games = ref([
-    {
-      title : "Payday 3",
-      price : 9.99,
-      tags : ["Co-op", "Multiplayer", "Action", "Shooter"],
-      likes : 0,
-      dislikes : 0,
-      rating : 100,
-      filesize : 4500,
-      image : "https://cdn1.epicgames.com/offer/8962863aee2f4e7483fc37d4719c3f69/EGS_PAYDAY3_Starbreeze_S2_1200x1600-80e39c5ee902cba196b484464276c8b7"
-    },
-    {
-      title : "Fallout 3",
-      price : 2.99,
-      tags : ["Singleplayer", "Story", "Action", "Shooter"],
-      likes : 0,
-      dislikes : 0,
-      rating : 100,
-      filesize : 100,
-      image : "https://cdn1.epicgames.com/offer/8962863aee2f4e7483fc37d4719c3f69/EGS_PAYDAY3_Starbreeze_S2_1200x1600-80e39c5ee902cba196b484464276c8b7"
-    }]
-    )
-    
+  const games = ref([])
+  const searchTerm = ref("")
+  const server = inject('server')
+   const getAllGames = () => axios.post(server.value, {action : "fetchall"}).then(resp => games.value = resp.data)
+   const getTopGames = () => axios.post(server.value, {action : "fetchTopGames"}).then(resp => games.value = resp.data)
+   const getGamesBySearchTerm = () => axios.post(server.value, {action : "foundByGameLike", title : searchTerm.value}).then(resp => resp.data != "No result" ? games.value = resp.data : games.value = games.value)
    const calculateRatio = (game) => game.rating = game.likes == 0 && game.dislikes == 0 || game.likes > 0 && game.dislikes == 0 ? 100 : ((game.likes / (game.likes + game.dislikes) ) * 100).toFixed(0)
    const megabyteOrGigabyte = (filesize) => {return filesize >= 1000 ? filesize / 1000 + " GB" : filesize + " MB"}
-   const likeThisGame = (game) => game.likes++
-   const dislikeThisGame = (game) => game.dislikes++
-  return { games, megabyteOrGigabyte, likeThisGame, dislikeThisGame, calculateRatio }
+   const likeThisGame = (game) => {
+    game.likes++
+    let id = game.id
+    axios.post(server.value,{action : 'likeThisGame', id})
+  }
+   const dislikeThisGame = (game) => {
+    game.dislikes++
+    let id = game.id
+    axios.post(server.value,{action : 'dislikeThisGame', id})
+  }
+   const sortByRating = () => games.value = games.value.sort((a,b) => {
+    if(a.rating > b.rating) return -1;
+    if(a.rating < b.rating) return 1;
+    return 0;
+   })
+   const sortByPrice = () => games.value = games.value.sort((a,b) => {
+    if(a.price > b.price) return -1;
+    if(a.price < b.price) return 1;
+    return 0;
+   })
+   const sortByPriceReverse = () => games.value = games.value.sort((a,b) => {
+    if(a.price > b.price) return 1;
+    if(a.price < b.price) return -1;
+    return 0;
+   })
+   const sortByAlphabet = () => games.value = games.value.sort((a,b) => {
+    if (a.title < b.title) return -1;
+    if (a.title > b.title) return 1;
+    return 0;
+   })
+   const sortByAlphabetReverse = () => games.value = games.value.sort((a,b) => {
+    if (a.title < b.title) return 1;
+    if (a.title > b.title) return -1;
+    return 0;
+   })
+  return { games, searchTerm, megabyteOrGigabyte, likeThisGame, dislikeThisGame, calculateRatio, sortByAlphabet,sortByAlphabetReverse, sortByRating, getTopGames,sortByPrice, sortByPriceReverse, getGamesBySearchTerm, getAllGames }
 })

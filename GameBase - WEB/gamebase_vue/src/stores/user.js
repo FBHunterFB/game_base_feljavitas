@@ -14,10 +14,10 @@ export const useUserStore = defineStore('user', () => {
   const login = () => [logged.value,loginModal.value] = [true,false]
   const logout = () => [logged.value,balance.value,library.value,ownedTitles.value] = [false,0.00,[],[]]
   const toggleDev = () => devMode.value = !devMode.value
-  const addBalance = (amount) => (balance.value += amount).toFixed(2)
+  const addBalance = (amount) => balance.value += amount
   const purchaseGame = (title, filesize, price) => {
     if(balance.value >= price && logged.value == true){
-      (balance.value -= price).toFixed(2)
+      balance.value -= price
       let ownedGame = { title : title, filesize : filesize, playtime : 0} 
       library.value.push(ownedGame)
       ownedTitles.value.push(title)

@@ -10,6 +10,9 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@headlessui/tailwindcss": "^0.2.0",
+    "@headlessui/vue": "^1.7.16",
+    "@heroicons/vue": "^2.0.18",
     "autoprefixer": "^10.4.14",
     "axios": "^1.4.0",
     "pinia": "^2.1.3",

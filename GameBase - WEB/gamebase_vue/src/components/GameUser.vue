@@ -3,10 +3,13 @@ import {useGameStore} from "@/stores/game.js"
 import GameTitle from "./Game/GameTitle.vue"
 import GameRating from "./Game/GameRating.vue"
 import GameToLibrary from "./Game/GameToLibrary.vue"
+import GameSorting from "./Game/GameSorting.vue"
 const gameStore = useGameStore()
+gameStore.getAllGames()
 </script>
 
 <template>
+    <GameSorting/>
     <div class="grid grid-cols-2 w-1/2 mx-auto h-full p-10 gap-2">
         <div class="bg-zinc-900 rounded-lg border-solid border-2 border-zinc-700" v-for="game in gameStore.games">
             <GameTitle 
